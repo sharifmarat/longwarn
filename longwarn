@@ -1,0 +1,48 @@
+#!/bin/bash -ue
+
+# Warn if a command takes too long.
+
+is_pos_num() {
+  return `test "$1" -eq "$1" -a "$1" -gt "0" 2>/dev/null`
+}
+
+if [ "$#" -lt 2 ]; then
+  cat >&1 <<EOF
+SYNOPSIS
+  $0 DURATION COMMAND
+
+    DURATION - positive number of seconds after which a warning will be issued.
+    COMMAND - a command to run.
+
+EXAMPLES
+  # failed - takes too long
+  $0 1 sleep 3
+
+  # failed - non-existing command
+  $0 1 command-that-does-not-exist
+
+  # success
+  $0 3 sleep 1
+
+  # combination with cronic for monitoring of potentially long tasks
+  23 23 * * * cronic $0 backup
+EOF
+  exit 1
+fi
+
+lim=$1
+shift
+if ! is_pos_num "$lim"; then
+  echo "$lim is not a positive number of seconds"
+  exit 1
+fi
+
+st=`date +%s`
+"$@"
+en=`date +%s`
+
+elapsed=$((en - st))
+if [ "$elapsed" -gt "$lim" ]; then
+  echo "Took $elapsed seconds which is longer than desired $lim seconds." >&2
+  exit 1
+fi
