@@ -21,8 +21,8 @@ DESCRIPTION
       -h,--help
             print this help.
 
-      -v,--verbose
-            print messages on how long it took to run the COMMAND.
+      -q,--quiet
+            disable output.
 
 EXAMPLES
       # failed - takes too long
@@ -45,16 +45,20 @@ is_pos_num() {
   test "$1" -eq "$1" -a "$1" -gt "0" 2>/dev/null
 }
 
-verbose=false
+quiet=false
 for i in "$@"; do
   case $i in
 		-h|--help)
       usage
       exit 0
     ;;
-    -v|--verbose)
-      verbose=true
+    -q|--quiet)
+      quiet=true
       shift
+    ;;
+    -*)
+      echo "invalid option '$i'" >&2
+      exit 1
     ;;
     *)
       break
@@ -70,7 +74,7 @@ fi
 lim=$1
 shift
 if ! is_pos_num "$lim"; then
-  echo "$lim is not a positive number of seconds"
+  echo "$lim is not a positive number of seconds" >&2
   exit 1
 fi
 
@@ -80,8 +84,6 @@ en=`date +%s`
 
 elapsed=$((en - st))
 if [ "$elapsed" -gt "$lim" ]; then
-  test $verbose = "true" && echo "Took $elapsed seconds which is longer than desired $lim seconds." >&2
+  test $quiet = "false" && echo "Took $elapsed seconds which is longer than desired $lim seconds." >&2
   exit 1
-else
-  test $verbose = "true" && echo "Took $elapsed seconds" >&1
 fi

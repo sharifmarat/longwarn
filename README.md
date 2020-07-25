@@ -40,7 +40,8 @@ longwarn 3 sleep 1
 longwarn 500 ls /
 ```
 
-To enable verbose mode:
+To disable output if a script fails:
 ```shell
-longwarn -v 30 ./backup.sh
+longwarn -q 30 ./backup.sh
+longwarn --quiet 30 ./backup.sh
 ```
