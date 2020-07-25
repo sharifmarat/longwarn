@@ -2,31 +2,68 @@
 
 # Warn if a command takes too long.
 
+usage() {
+  cat >&1 <<EOF
+SYNOPSIS
+      longwarn [OPTIONS] DURATION COMMAND
+
+DESCRIPTION
+      Run COMMAND and if it succeeds, but takes longer than DURATION seconds, then return non-zero exit code.
+      If COMMAND fails, error code is kept the same.
+      If COMMAND succeeds and takes less than DURATION seconds, return zero exit code.
+
+      DURATION
+            positive number of seconds after which a warning will be issued.
+
+      COMMAND
+            a command to run.
+
+      -h,--help
+            print this help.
+
+      -v,--verbose
+            print messages on how long it took to run the COMMAND.
+
+EXAMPLES
+      # failed - takes too long
+      longwarn 1 sleep 3
+
+      # failed - non-existing command
+      longwarn 1 command-that-does-not-exist
+
+      # success and print how long the command actually took
+      longwarn -v 3 sleep 1
+
+      # Combination with cronic for monitoring of potentially long tasks.
+      # This example will send a warning email if backup job takes longer than 1 minute.
+      MAILTO=monitoring@example.com
+      11 11 * * * longwarn 60 /backup.sh
+EOF
+}
+
 is_pos_num() {
   test "$1" -eq "$1" -a "$1" -gt "0" 2>/dev/null
 }
 
+verbose=false
+for i in "$@"; do
+  case $i in
+		-h|--help)
+      usage
+      exit 0
+    ;;
+    -v|--verbose)
+      verbose=true
+      shift
+    ;;
+    *)
+      break
+    ;;
+  esac
+done
+
 if [ "$#" -lt 2 ]; then
-  cat >&1 <<EOF
-SYNOPSIS
-  $0 DURATION COMMAND
-
-    DURATION - positive number of seconds after which a warning will be issued.
-    COMMAND - a command to run.
-
-EXAMPLES
-  # failed - takes too long
-  $0 1 sleep 3
-
-  # failed - non-existing command
-  $0 1 command-that-does-not-exist
-
-  # success
-  $0 3 sleep 1
-
-  # combination with cronic for monitoring of potentially long tasks
-  23 23 * * * cronic $0 backup
-EOF
+  usage
   exit 1
 fi
 
@@ -43,6 +80,8 @@ en=`date +%s`
 
 elapsed=$((en - st))
 if [ "$elapsed" -gt "$lim" ]; then
-  echo "Took $elapsed seconds which is longer than desired $lim seconds." >&2
+  test $verbose = "true" && echo "Took $elapsed seconds which is longer than desired $lim seconds." >&2
   exit 1
+else
+  test $verbose = "true" && echo "Took $elapsed seconds" >&1
 fi

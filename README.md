@@ -24,7 +24,8 @@ MAILTO=monitoring@example.com
 
 Show usage:
 ```shell
-longwarn 
+longwarn --help
+longwarn
 ```
 
 Failed return codes:
@@ -37,4 +38,9 @@ Success (usually):
 ```shell
 longwarn 3 sleep 1
 longwarn 500 ls /
+```
+
+To enable verbose mode:
+```shell
+longwarn -v 30 ./backup.sh
 ```
