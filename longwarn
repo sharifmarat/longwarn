@@ -18,10 +18,10 @@ DESCRIPTION
       COMMAND
             a command to run.
 
-      -h,--help
+      -h, --help
             print this help.
 
-      -q,--quiet
+      -q, --quiet
             disable output.
 
 EXAMPLES
